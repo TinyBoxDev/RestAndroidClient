@@ -7,3 +7,9 @@
 
 */bin/*
 */gen/*
+
+.metadata
+
+*/.project
+*/.classpath
+*/.settings/*
