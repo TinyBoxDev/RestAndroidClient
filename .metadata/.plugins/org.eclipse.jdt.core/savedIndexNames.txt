@@ -1,4 +1,0 @@
-INDEX VERSION 1.126+/Users/helloIAmPau/Develop/TinyBox/RestAndroidClient/.metadata/.plugins/org.eclipse.jdt.core
-77011381.index
-4239391678.index
-2135702035.index
