@@ -13,7 +13,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.PlainSocketFactory;
@@ -34,11 +33,14 @@ import android.util.Log;
 
 public class RestClient {
 	
+	public static final int defaultPlainSocketPort = 80;
+	public static final int defaultSecureSocketPort = 443;
+	
 	private DefaultHttpClient httpClient;
 	
-	
+	/*
 	public RestClient() {
-		this(80, 443);
+		this(RestClient.defaultPlainSocketPort, RestClient.defaultSecureSocketPort);
 	}
 	
 	public RestClient(int plainSocketPort, int secureSocketPort) {
@@ -53,6 +55,7 @@ public class RestClient {
 		ClientConnectionManager connectionManager = new ThreadSafeClientConnManager(connectionParams, schemeRegistry);
 		this.httpClient = new DefaultHttpClient(connectionManager, connectionParams);
 	}
+	*/
 	
 	/*
 	public HashMap<String,Object> doGet(String url) {
@@ -80,7 +83,7 @@ public class RestClient {
 		}
 		return getResults;
 	}
-	*/
+	
 	
 	public HashMap<String,Object> doPost(String url, HashMap<String, String> postParameters) {
 		HashMap<String,Object> postResults = new HashMap<String,Object>();
@@ -123,5 +126,6 @@ public class RestClient {
 		}
 		return postResults;
 	}
+	*/
 	
 }
