@@ -1,4 +1,4 @@
-package org.tiny.box.restandroidclient.ssl;
+package org.tiny.box.restandroidclient.socket.ssl;
 
 import java.io.IOException;
 import java.net.InetAddress;

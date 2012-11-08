@@ -1,6 +1,7 @@
 package org.tiny.box.restandroidclient;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,11 +14,13 @@ import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
@@ -27,27 +30,29 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.tiny.box.restandroidclient.ssl.SelfSignedSSLSocketFactory;
+import org.tiny.box.restandroidclient.socket.SocketFactorySelector;
+import org.tiny.box.restandroidclient.socket.ssl.SelfSignedSSLSocketFactory;
 
+import android.net.Uri;
+import android.net.Uri.Builder;
 import android.util.Log;
 
 public class RestClient {
 	
-	public static final int defaultPlainSocketPort = 80;
-	public static final int defaultSecureSocketPort = 443;
+	public static final int DEFAULT_PLAIN_SOCKET_PORT = 80;
+	public static final int DEFAULT_SECURE_SOCKET_PORT = 443;
 	
 	private DefaultHttpClient httpClient;
+	private String serverAddress;
 	
-	/*
-	public RestClient() {
-		this(RestClient.defaultPlainSocketPort, RestClient.defaultSecureSocketPort);
+	public RestClient(String address) {
+		this(address, SocketFactorySelector.DEFAULT_PLAIN_SOCKET_SCHEME, RestClient.DEFAULT_PLAIN_SOCKET_PORT);
 	}
 	
-	public RestClient(int plainSocketPort, int secureSocketPort) {
+	public RestClient(String address, String connectionProtocol, int socketPort) {
 		SchemeRegistry schemeRegistry = new SchemeRegistry();
-		
-		schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), plainSocketPort));
-		schemeRegistry.register(new Scheme("https", new SelfSignedSSLSocketFactory(), secureSocketPort));
+		this.serverAddress = address;
+		schemeRegistry.register(new Scheme(connectionProtocol, SocketFactorySelector.get(connectionProtocol), socketPort));
 		
 		HttpParams connectionParams = new BasicHttpParams();
 		HttpProtocolParams.setVersion(connectionParams, HttpVersion.HTTP_1_1);
@@ -55,7 +60,48 @@ public class RestClient {
 		ClientConnectionManager connectionManager = new ThreadSafeClientConnManager(connectionParams, schemeRegistry);
 		this.httpClient = new DefaultHttpClient(connectionManager, connectionParams);
 	}
-	*/
+	
+	public int getSocketPort() {
+		return this.getCurrentScheme().getDefaultPort();
+	}
+	
+	public String getServerAddress() {
+		return this.serverAddress;
+	}
+	
+	public SocketFactory getSocketFactory() {
+		return this.getCurrentScheme().getSocketFactory();
+	}
+	
+	public String doGet(List<NameValuePair> parameters) {
+		String toQueryString = new String(this.serverAddress);
+		String getResponse = null;
+		
+		if(parameters!=null){
+			toQueryString += "?";
+			for(int i =0; i< parameters.size(); i++)
+				toQueryString += URLEncoder.encode(parameters.get(i).getName()) + "=" + URLEncoder.encode(parameters.get(i).getValue()) + "&";
+			toQueryString = toQueryString.substring(0, toQueryString.length()-1);
+		}
+		
+		
+		try {
+			HttpGet httpGet = new HttpGet(toQueryString);
+			HttpResponse response = httpClient.execute(httpGet);
+			getResponse = EntityUtils.toString(response.getEntity()).toString();
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return getResponse;
+	}
+	
+	private Scheme getCurrentScheme() {
+		return this.httpClient.getConnectionManager().getSchemeRegistry().getScheme(httpClient.getConnectionManager().getSchemeRegistry().getSchemeNames().get(0));
+	}
+	
 	
 	/*
 	public HashMap<String,Object> doGet(String url) {
