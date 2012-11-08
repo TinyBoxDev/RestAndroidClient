@@ -10,6 +10,6 @@
 
 .metadata
 
-*/.project
+#*/.project
 */.classpath
 */.settings/*

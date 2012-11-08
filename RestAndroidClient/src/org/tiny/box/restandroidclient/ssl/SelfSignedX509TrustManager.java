@@ -1,4 +1,4 @@
-package org.tiny.box.restandroidclient;
+package org.tiny.box.restandroidclient.ssl;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -15,14 +15,14 @@ import javax.net.ssl.X509TrustManager;
  * @version $Id: EasyX509TrustManager.java 765355 2009-04-15 20:59:07Z evenisse $
  * @since 1.2.3
  */
-public class EasyX509TrustManager implements X509TrustManager {
+public class SelfSignedX509TrustManager implements X509TrustManager {
 
     private X509TrustManager standardTrustManager = null;
 
     /**
      * Constructor for EasyX509TrustManager.
      */
-    public EasyX509TrustManager( KeyStore keystore )
+    public SelfSignedX509TrustManager( KeyStore keystore )
         throws NoSuchAlgorithmException, KeyStoreException
     {
         super();

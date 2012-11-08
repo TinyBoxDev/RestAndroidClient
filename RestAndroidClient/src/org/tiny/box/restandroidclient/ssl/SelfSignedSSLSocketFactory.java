@@ -1,4 +1,4 @@
-package org.tiny.box.restandroidclient;
+package org.tiny.box.restandroidclient.ssl;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -26,14 +26,14 @@ import org.apache.http.params.HttpParams;
  *          $
  * @since 1.2.3
  */
-public class EasySSLSocketFactory implements SocketFactory, LayeredSocketFactory {
+public class SelfSignedSSLSocketFactory implements SocketFactory, LayeredSocketFactory {
 	
 	private SSLContext sslcontext = null;
 
 	private static SSLContext createEasySSLContext() throws IOException {
 		try {
 			SSLContext context = SSLContext.getInstance("TLS");
-			context.init(null, new TrustManager[] { new EasyX509TrustManager(null) }, null);
+			context.init(null, new TrustManager[] { new SelfSignedX509TrustManager(null) }, null);
 			return context;
 		} catch (Exception e) {
 			throw new IOException(e.getMessage());
@@ -108,11 +108,11 @@ public class EasySSLSocketFactory implements SocketFactory, LayeredSocketFactory
 
         public boolean equals(Object obj) {
                 return ((obj != null) && obj.getClass().equals(
-                                EasySSLSocketFactory.class));
+                                SelfSignedSSLSocketFactory.class));
         }
 
         public int hashCode() {
-                return EasySSLSocketFactory.class.hashCode();
+                return SelfSignedSSLSocketFactory.class.hashCode();
         }
 
 }
