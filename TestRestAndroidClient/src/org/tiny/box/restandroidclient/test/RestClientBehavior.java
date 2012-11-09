@@ -10,7 +10,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.NameValuePair;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.tiny.box.restandroidclient.RestClient;
 import org.tiny.box.restandroidclient.socket.SocketFactorySelector;
 
