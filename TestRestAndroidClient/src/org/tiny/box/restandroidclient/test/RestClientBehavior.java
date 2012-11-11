@@ -9,6 +9,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.NameValuePair;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.tiny.box.restandroidclient.RestClient;
 import org.tiny.box.restandroidclient.errors.RestClientConnectionException;
 import org.tiny.box.restandroidclient.socket.SocketFactorySelector;
@@ -76,7 +77,7 @@ public class RestClientBehavior extends TestCase {
 	@SmallTest
 	public void testShouldPerformPlainGetRequest() throws JSONException, RestClientConnectionException {
 		RestClient testClient = new RestClient("http://tinyurl.com/api-create.php");
-		List<NameValuePair> queryParameters = new ArrayList<NameValuePair>(1);
+		List<NameValuePair> queryParameters = new ArrayList<NameValuePair>();
 		queryParameters.add(new BasicNameValuePair("url", "www.google.com"));
 		String response = testClient.doGet(queryParameters);
 		assertNotNull(response);
@@ -94,10 +95,10 @@ public class RestClientBehavior extends TestCase {
 	}
 	
 	@SmallTest
-	public void testShouldThrowAnExceptionIfServerIsUnreachable(){
+	public void testShouldThrowAnExceptionIfServerIsUnreachableWhenPerformsAGetRequest(){
 		RestClient testClient = new RestClient("http://www.indirizzofasullochenonesiste.it");
 		try{
-			testClient.doGet(null);
+			testClient.doGet();
 			fail("Should have thrown RestClientConnection exception.");
 		} catch (RestClientConnectionException e){
 		} catch (Exception e){
@@ -106,15 +107,41 @@ public class RestClientBehavior extends TestCase {
 	}
 	
 	@SmallTest
-	public void testShouldThrownAnExceptionIfWasPassedInvalidClientProtocol() {
-		RestClient testClient = new RestClient("https://encrypted.google.com", SocketFactorySelector.DEFAULT_PLAIN_SOCKET_SCHEME, RestClient.DEFAULT_SECURE_SOCKET_PORT);
-		try{
-			testClient.doGet();
-			fail("Should have thrown RestClientConnection exception.");
-		} catch (RestClientConnectionException e){
-		} catch (Exception e){
-			fail("Wrong exception thrown. " + e.getMessage());
-		}
+	public void testShouldPerformPlainPostRequest() throws JSONException, RestClientConnectionException{
+		String fieldToSend = "test_field";
+		String valueToSend = "here I am";
+		
+		RestClient testClient = new RestClient("http://httpbin.org/post");
+		List<NameValuePair> postParameters = new ArrayList<NameValuePair>();
+		postParameters.add(new BasicNameValuePair(fieldToSend, valueToSend));
+		String response = testClient.doPost(postParameters);
+		assertNotNull(response);
+		JSONObject responseObject = new JSONObject(response);
+		assertEquals(valueToSend,
+				((JSONObject)responseObject.get("form")).get(fieldToSend));
+	}
+	
+	@SmallTest
+	public void testShouldPerformSecurePostRequest() throws RestClientConnectionException, JSONException {
+		String fieldToSend = "test_field";
+		String valueToSend = "here I am";
+		
+		RestClient testClient = new RestClient("https://httpbin.org/post", SocketFactorySelector.DEFAULT_SECURE_SOCKET_SCHEME, RestClient.DEFAULT_SECURE_SOCKET_PORT);
+		List<NameValuePair> postParameters = new ArrayList<NameValuePair>();
+		postParameters.add(new BasicNameValuePair(fieldToSend, valueToSend));
+		String response = testClient.doPost(postParameters);
+		assertNotNull(response);
+		JSONObject responseObject = new JSONObject(response);
+		assertEquals(valueToSend,
+				((JSONObject)responseObject.get("form")).get(fieldToSend));
+	}
+	
+	@SmallTest
+	public void testShouldPerformAPostRequestWithNoParameters() throws RestClientConnectionException {
+		RestClient testClient = new RestClient("http://httpbin.org/post");
+		String response = testClient.doPost();
+		assertNotNull(response);
+
 	}
 	
 

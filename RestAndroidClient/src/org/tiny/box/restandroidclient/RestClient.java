@@ -1,14 +1,19 @@
 package org.tiny.box.restandroidclient;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -64,103 +69,57 @@ public class RestClient {
 	
 	public String doGet(List<NameValuePair> parameters) throws RestClientConnectionException {
 		String toQueryString = new String(this.serverAddress);
-		String getResponse = null;
-		
-		if(parameters!=null){
-			toQueryString += "?";
-			for(int i =0; i< parameters.size(); i++)
-				toQueryString += URLEncoder.encode(parameters.get(i).getName()) + "=" + URLEncoder.encode(parameters.get(i).getValue()) + "&";
-			toQueryString = toQueryString.substring(0, toQueryString.length()-1);
-		}
-		
 		
 		try {
-			HttpGet httpGet = new HttpGet(toQueryString);
-			HttpResponse response = httpClient.execute(httpGet);
-			getResponse = EntityUtils.toString(response.getEntity()).toString();
+			if(parameters!=null){
+				toQueryString += "?";
+				for(int i =0; i< parameters.size(); i++)
+						toQueryString += URLEncoder.encode(parameters.get(i).getName(), "UTF-8") + "=" + URLEncoder.encode(parameters.get(i).getValue(), "UTF-8") + "&";
+				toQueryString = toQueryString.substring(0, toQueryString.length()-1);
+			}
+		} catch (UnsupportedEncodingException e) {
+			throw new RestClientConnectionException(e);
+		}
+		
+		HttpGet httpGet = new HttpGet(toQueryString);
+		
+		return this.performARequest(httpGet);
+	}
+	
+	public String doPost() throws RestClientConnectionException{
+		return this.doPost(new ArrayList<NameValuePair>());
+	}
+	
+	public String doPost(List<NameValuePair> parameters) throws RestClientConnectionException{
+		HttpPost httpPost = new HttpPost(this.serverAddress);
+		
+		try {
+			httpPost.setEntity(new UrlEncodedFormEntity(parameters));
+		} catch (UnsupportedEncodingException e) {
+			throw new RestClientConnectionException(e);
+		}
+		
+		return this.performARequest(httpPost);
+	}
+	
+	private String performARequest(HttpRequestBase request) throws RestClientConnectionException{
+		String stringfiedResponse = null;
+		
+		HttpResponse response;
+		try {
+			response = httpClient.execute(request);
+			stringfiedResponse = EntityUtils.toString(response.getEntity()).toString();
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			throw new RestClientConnectionException(e);
 		}
 		
-		return getResponse;
+		return stringfiedResponse;
 	}
 	
 	private Scheme getCurrentScheme() {
 		return this.httpClient.getConnectionManager().getSchemeRegistry().getScheme(httpClient.getConnectionManager().getSchemeRegistry().getSchemeNames().get(0));
 	}
-	
-	
-	/*
-	public HashMap<String,Object> doGet(String url) {
-		HttpGet httpGet = new HttpGet(url);
-		HashMap<String,Object> getResults = new HashMap<String,Object>();
-		try {
-			HttpResponse response = httpClient.execute(httpGet);
-			JSONObject jsonResponse = new JSONObject(EntityUtils.toString(response.getEntity()).toString());
-			
-			Iterator<String> iterator = jsonResponse.keys();
-			while(iterator.hasNext()) {
-				String key = (String)iterator.next();
-				getResults.put(key, jsonResponse.get(key));
-			}
-			
-		} catch (ClientProtocolException e) {
-			getResults.put("status", 1);
-			e.printStackTrace();
-		} catch (IOException e) {
-			getResults.put("status", 1);
-			e.printStackTrace();
-		} catch (JSONException e) {
-			getResults.put("status", 1);
-			e.printStackTrace();
-		}
-		return getResults;
-	}
-	
-	
-	public HashMap<String,Object> doPost(String url, HashMap<String, String> postParameters) {
-		HashMap<String,Object> postResults = new HashMap<String,Object>();
-		HttpPost httpPost = new HttpPost(url);
-		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
-		for(String key : postParameters.keySet())
-			nameValuePairs.add(new BasicNameValuePair(key, postParameters.get(key)));
-		
-		try {
-			httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-			HttpResponse response = httpClient.execute(httpPost);
-			Log.v("POST req", response.getStatusLine().toString());
-			for (Header h : response.getAllHeaders()) {
-				Log.v("POST resp header", h.getName() + " : " + h.getValue() + "\n");
-			}
-			String res = EntityUtils.toString(response.getEntity()).toString();
-			JSONObject jsonResponse = new JSONObject(res);
-			Log.v("POST resp body", res);
-			Iterator<String> iterator = jsonResponse.keys();
-			while(iterator.hasNext()) {
-				String key = (String)iterator.next();
-				postResults.put(key, jsonResponse.get(key));
-			}
-		} catch (ClientProtocolException e) {
-			Log.v("POST req", "ClientProtocolException");
-			postResults.put("status", 1);
-			e.printStackTrace();
-		} catch (IOException e) {
-			Log.v("POST req", "IOException");
-			postResults.put("status", 1);
-			e.printStackTrace();
-		} catch (ParseException e) {
-			Log.v("POST req", "ParseException");
-			postResults.put("status", 1);
-			e.printStackTrace();
-		} catch (JSONException e) {
-			Log.v("POST req", "JSONException");
-			postResults.put("status", 1);
-			e.printStackTrace();
-		}
-		return postResults;
-	}
-	*/
 	
 }
