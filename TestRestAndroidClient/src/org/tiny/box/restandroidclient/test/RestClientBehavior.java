@@ -141,7 +141,6 @@ public class RestClientBehavior extends TestCase {
 		RestClient testClient = new RestClient("http://httpbin.org/post");
 		String response = testClient.doPost();
 		assertNotNull(response);
-
 	}
 	
 
