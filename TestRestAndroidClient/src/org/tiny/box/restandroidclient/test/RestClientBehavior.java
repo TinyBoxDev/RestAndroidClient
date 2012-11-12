@@ -82,9 +82,27 @@ public class RestClientBehavior extends TestCase {
 			
 		}
 		
+<<<<<<< HEAD
 		RestClient testClient = new RestClient("http://www.google.it");
 		testClient.doGet(new onGetResult());
 		testClient.get();
+=======
+		RestClient testClient = new RestClient("https://httpbin.org/post", SocketFactorySelector.DEFAULT_SECURE_SOCKET_SCHEME, RestClient.DEFAULT_SECURE_SOCKET_PORT);
+		List<NameValuePair> postParameters = new ArrayList<NameValuePair>();
+		postParameters.add(new BasicNameValuePair(fieldToSend, valueToSend));
+		String response = testClient.doPost(postParameters);
+		assertNotNull(response);
+		JSONObject responseObject = new JSONObject(response);
+		assertEquals(valueToSend,
+				((JSONObject)responseObject.get("form")).get(fieldToSend));
+	}
+	
+	@SmallTest
+	public void testShouldPerformAPostRequestWithNoParameters() throws RestClientConnectionException {
+		RestClient testClient = new RestClient("http://httpbin.org/post");
+		String response = testClient.doPost();
+		assertNotNull(response);
+>>>>>>> fc22a507a63135ac1fcbe141bff297303690a99a
 	}
 	
 //	@SmallTest
