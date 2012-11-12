@@ -27,13 +27,17 @@ import org.apache.http.util.EntityUtils;
 import org.tiny.box.restandroidclient.errors.RestClientConnectionException;
 import org.tiny.box.restandroidclient.socket.SocketFactorySelector;
 
-public class RestClient {
+import android.os.AsyncTask;
+
+public class RestClient extends AsyncTask<HttpRequestBase, Void, String>{
 	
 	public static final int DEFAULT_PLAIN_SOCKET_PORT = 80;
 	public static final int DEFAULT_SECURE_SOCKET_PORT = 443;
 	
 	private DefaultHttpClient httpClient;
 	private String serverAddress;
+	
+	private RequestCallback currentCallback;
 	
 	public RestClient(String address) {
 		this(address, SocketFactorySelector.DEFAULT_PLAIN_SOCKET_SCHEME, RestClient.DEFAULT_PLAIN_SOCKET_PORT);
@@ -63,11 +67,13 @@ public class RestClient {
 		return this.getCurrentScheme().getSocketFactory();
 	}
 	
-	public String doGet() throws RestClientConnectionException{
-		return this.doGet(null);
+	public void doGet(RequestCallback callback) throws RestClientConnectionException{
+		this.doGet(null, callback);
 	}
 	
-	public String doGet(List<NameValuePair> parameters) throws RestClientConnectionException {
+	public void doGet(List<NameValuePair> parameters, RequestCallback callback) throws RestClientConnectionException {
+		this.currentCallback = callback;
+		
 		String toQueryString = new String(this.serverAddress);
 		
 		try {
@@ -83,14 +89,14 @@ public class RestClient {
 		
 		HttpGet httpGet = new HttpGet(toQueryString);
 		
-		return this.performARequest(httpGet);
+		this.execute(httpGet);
 	}
 	
-	public String doPost() throws RestClientConnectionException{
-		return this.doPost(new ArrayList<NameValuePair>());
+	public void doPost() throws RestClientConnectionException{
+		this.doPost(new ArrayList<NameValuePair>());
 	}
 	
-	public String doPost(List<NameValuePair> parameters) throws RestClientConnectionException{
+	public void doPost(List<NameValuePair> parameters) throws RestClientConnectionException{
 		HttpPost httpPost = new HttpPost(this.serverAddress);
 		
 		try {
@@ -99,27 +105,35 @@ public class RestClient {
 			throw new RestClientConnectionException(e);
 		}
 		
-		return this.performARequest(httpPost);
+		this.execute(httpPost);
 	}
 	
-	private String performARequest(HttpRequestBase request) throws RestClientConnectionException{
+	private Scheme getCurrentScheme() {
+		return this.httpClient.getConnectionManager().getSchemeRegistry().getScheme(httpClient.getConnectionManager().getSchemeRegistry().getSchemeNames().get(0));
+	}
+
+	@Override
+	protected String doInBackground(HttpRequestBase... requests) {
+		HttpRequestBase currentRequest = requests[0];
+		
 		String stringfiedResponse = null;
 		
 		HttpResponse response;
 		try {
-			response = httpClient.execute(request);
+			response = httpClient.execute(currentRequest);
 			stringfiedResponse = EntityUtils.toString(response.getEntity()).toString();
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			throw new RestClientConnectionException(e);
+			e.printStackTrace();
 		}
 		
 		return stringfiedResponse;
 	}
 	
-	private Scheme getCurrentScheme() {
-		return this.httpClient.getConnectionManager().getSchemeRegistry().getScheme(httpClient.getConnectionManager().getSchemeRegistry().getSchemeNames().get(0));
+	@Override
+	protected void onPostExecute(String stringfiedResponse){
+		this.currentCallback.handleResponse(stringfiedResponse);
 	}
 	
 }
