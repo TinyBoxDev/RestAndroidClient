@@ -92,11 +92,12 @@ public class RestClient extends AsyncTask<HttpRequestBase, Void, String>{
 		this.execute(httpGet);
 	}
 	
-	public void doPost() throws RestClientConnectionException{
-		this.doPost(new ArrayList<NameValuePair>());
+	public void doPost(RequestCallback callback) throws RestClientConnectionException{
+		this.doPost(new ArrayList<NameValuePair>(), callback);
 	}
 	
-	public void doPost(List<NameValuePair> parameters) throws RestClientConnectionException{
+	public void doPost(List<NameValuePair> parameters, RequestCallback callback) throws RestClientConnectionException{
+		this.currentCallback = callback;
 		HttpPost httpPost = new HttpPost(this.serverAddress);
 		
 		try {
@@ -133,7 +134,10 @@ public class RestClient extends AsyncTask<HttpRequestBase, Void, String>{
 	
 	@Override
 	protected void onPostExecute(String stringfiedResponse){
-		this.currentCallback.handleResponse(stringfiedResponse);
+		if(stringfiedResponse!=null)
+			this.currentCallback.onRequestSuccess(stringfiedResponse);
+		else
+			this.currentCallback.onRequestFail();
 	}
 	
 }

@@ -2,6 +2,7 @@ package org.tiny.box.restandroidclient;
 
 public interface RequestCallback {
 
-	public void handleResponse(String response);
+	public void onRequestSuccess(String response);
+	public void onRequestFail();
 	
 }
