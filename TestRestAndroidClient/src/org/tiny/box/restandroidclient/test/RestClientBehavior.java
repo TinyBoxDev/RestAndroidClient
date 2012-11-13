@@ -3,8 +3,9 @@ package org.tiny.box.restandroidclient.test;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+
+import junit.framework.TestCase;
 
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -19,19 +20,14 @@ import org.tiny.box.restandroidclient.socket.SocketFactorySelector;
 
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
-import junit.framework.TestCase;
 
 public class RestClientBehavior extends TestCase {
 	
 	class commonCallback implements RequestCallback{
 
 		@Override
-		public void onRequestSuccess(String response) {
+		public void onRequestEnd(boolean status, String response) {
 			Log.v("callback", "called!");
-		}
-		
-		@Override
-		public void onRequestFail(){
 			
 		}
 		
@@ -121,12 +117,10 @@ public class RestClientBehavior extends TestCase {
 		class localCallback implements RequestCallback{
 
 			@Override
-			public void onRequestSuccess(String response) {
+			public void onRequestEnd(boolean status, String response) {
 				fail("Called success callback");
+				
 			}
-			
-			@Override
-			public void onRequestFail(){}
 			
 		}
 		

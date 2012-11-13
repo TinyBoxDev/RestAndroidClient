@@ -28,8 +28,9 @@ import org.tiny.box.restandroidclient.errors.RestClientConnectionException;
 import org.tiny.box.restandroidclient.socket.SocketFactorySelector;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
-public class RestClient extends AsyncTask<HttpRequestBase, Void, String>{
+public class RestClient extends AsyncTask<HttpRequestBase, Void, String> {
 	
 	public static final int DEFAULT_PLAIN_SOCKET_PORT = 80;
 	public static final int DEFAULT_SECURE_SOCKET_PORT = 443;
@@ -115,13 +116,14 @@ public class RestClient extends AsyncTask<HttpRequestBase, Void, String>{
 
 	@Override
 	protected String doInBackground(HttpRequestBase... requests) {
+
 		HttpRequestBase currentRequest = requests[0];
 		
 		String stringfiedResponse = null;
 		
 		HttpResponse response;
 		try {
-			response = httpClient.execute(currentRequest);
+			response = this.httpClient.execute(currentRequest);
 			stringfiedResponse = EntityUtils.toString(response.getEntity()).toString();
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
@@ -134,10 +136,8 @@ public class RestClient extends AsyncTask<HttpRequestBase, Void, String>{
 	
 	@Override
 	protected void onPostExecute(String stringfiedResponse){
-		if(stringfiedResponse!=null)
-			this.currentCallback.onRequestSuccess(stringfiedResponse);
-		else
-			this.currentCallback.onRequestFail();
+		Log.v("on", "onpost");
+		this.currentCallback.onRequestEnd(stringfiedResponse!=null, stringfiedResponse);
 	}
 	
 }
