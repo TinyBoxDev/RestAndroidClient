@@ -136,7 +136,7 @@ public class RestClient extends AsyncTask<HttpRequestBase, Void, String> {
 	
 	@Override
 	protected void onPostExecute(String stringfiedResponse){
-		Log.v("on", "onpost");
+		Log.v("RestAndroidClient - Received Packet", stringfiedResponse);
 		this.currentCallback.onRequestEnd(stringfiedResponse!=null, stringfiedResponse);
 	}
 	
