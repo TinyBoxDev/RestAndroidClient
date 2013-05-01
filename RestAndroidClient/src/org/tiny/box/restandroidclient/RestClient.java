@@ -68,7 +68,7 @@ public class RestClient extends AsyncTask<HttpRequestBase, Void, String> {
 		return this.getCurrentScheme().getSocketFactory();
 	}
 	
-	public void doGet(RequestCallback callback) throws RestClientConnectionException{
+	public void doGet(RequestCallback callback) throws RestClientConnectionException {
 		this.doGet(null, callback);
 	}
 	
@@ -129,14 +129,15 @@ public class RestClient extends AsyncTask<HttpRequestBase, Void, String> {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+			Log.v("pau", e.getMessage());
 		}
 		
 		return stringfiedResponse;
 	}
 	
 	@Override
-	protected void onPostExecute(String stringfiedResponse){
-		Log.v("RestAndroidClient - Received Packet", stringfiedResponse);
+	protected void onPostExecute(String stringfiedResponse) {
+		Log.v("RestAndroidClient - Received Packet", stringfiedResponse!=null ? stringfiedResponse : "Null response");
 		this.currentCallback.onRequestEnd(stringfiedResponse!=null, stringfiedResponse);
 	}
 	
