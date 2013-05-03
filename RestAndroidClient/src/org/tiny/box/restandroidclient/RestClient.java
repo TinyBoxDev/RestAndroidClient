@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
+import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -30,7 +31,7 @@ import org.tiny.box.restandroidclient.socket.SocketFactorySelector;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class RestClient extends AsyncTask<HttpRequestBase, Void, String> {
+public class RestClient extends AsyncTask<HttpRequestBase, Void, HttpResponse> {
 	
 	public static final int DEFAULT_PLAIN_SOCKET_PORT = 80;
 	public static final int DEFAULT_SECURE_SOCKET_PORT = 443;
@@ -115,30 +116,35 @@ public class RestClient extends AsyncTask<HttpRequestBase, Void, String> {
 	}
 
 	@Override
-	protected String doInBackground(HttpRequestBase... requests) {
+	protected HttpResponse doInBackground(HttpRequestBase... requests) {
 
 		HttpRequestBase currentRequest = requests[0];
 		
-		String stringfiedResponse = null;
-		
-		HttpResponse response;
+		HttpResponse response = null;
 		try {
 			response = this.httpClient.execute(currentRequest);
-			stringfiedResponse = EntityUtils.toString(response.getEntity()).toString();
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-			Log.v("pau", e.getMessage());
 		}
 		
-		return stringfiedResponse;
+		return response;
 	}
 	
 	@Override
-	protected void onPostExecute(String stringfiedResponse) {
-		Log.v("RestAndroidClient - Received Packet", stringfiedResponse!=null ? stringfiedResponse : "Null response");
-		this.currentCallback.onRequestEnd(stringfiedResponse!=null, stringfiedResponse);
+	protected void onPostExecute(HttpResponse response) {
+		if(response == null) {
+			this.currentCallback.onRequestEnd(-1, "NULL RESP");
+			return;
+		}
+		try {
+			this.currentCallback.onRequestEnd(response.getStatusLine().getStatusCode(), EntityUtils.toString(response.getEntity()).toString());
+		} catch (ParseException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 }
