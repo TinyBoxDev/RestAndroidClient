@@ -6,6 +6,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
@@ -69,11 +70,11 @@ public class RestClient extends AsyncTask<HttpRequestBase, Void, HttpResponse> {
 		return this.getCurrentScheme().getSocketFactory();
 	}
 	
-	public void doGet(RequestCallback callback) throws RestClientConnectionException {
-		this.doGet(null, callback);
+	public void doGet(RequestCallback callback, String cookies) throws RestClientConnectionException {
+      this.doGet(null, callback, cookies);
 	}
 	
-	public void doGet(List<NameValuePair> parameters, RequestCallback callback) throws RestClientConnectionException {
+	public void doGet(List<NameValuePair> parameters, RequestCallback callback, String cookies) throws RestClientConnectionException {
 		this.currentCallback = callback;
 		
 		String toQueryString = new String(this.serverAddress);
@@ -90,15 +91,18 @@ public class RestClient extends AsyncTask<HttpRequestBase, Void, HttpResponse> {
 		}
 		
 		HttpGet httpGet = new HttpGet(toQueryString);
+
+    if(cookies != null)
+        httpGet.setHeader("Cookie", cookies);
 		
 		this.execute(httpGet);
 	}
 	
-	public void doPost(RequestCallback callback) throws RestClientConnectionException{
-		this.doPost(new ArrayList<NameValuePair>(), callback);
+	public void doPost(RequestCallback callback, String cookies) throws RestClientConnectionException{
+      this.doPost(new ArrayList<NameValuePair>(), callback, cookies);
 	}
 	
-	public void doPost(List<NameValuePair> parameters, RequestCallback callback) throws RestClientConnectionException{
+	public void doPost(List<NameValuePair> parameters, RequestCallback callback, String cookies) throws RestClientConnectionException{
 		this.currentCallback = callback;
 		HttpPost httpPost = new HttpPost(this.serverAddress);
 		
@@ -107,7 +111,10 @@ public class RestClient extends AsyncTask<HttpRequestBase, Void, HttpResponse> {
 		} catch (UnsupportedEncodingException e) {
 			throw new RestClientConnectionException(e);
 		}
-		
+
+    if(cookies != null)
+        httpPost.setHeader("Cookie", cookies);
+    
 		this.execute(httpPost);
 	}
 	
@@ -135,11 +142,15 @@ public class RestClient extends AsyncTask<HttpRequestBase, Void, HttpResponse> {
 	@Override
 	protected void onPostExecute(HttpResponse response) {
 		if(response == null) {
-			this.currentCallback.onRequestEnd(-1, "NULL RESP");
+        this.currentCallback.onRequestEnd(-1, "NULL RESP", null);
 			return;
 		}
 		try {
-			this.currentCallback.onRequestEnd(response.getStatusLine().getStatusCode(), EntityUtils.toString(response.getEntity()).toString());
+        
+        Header[] respHead = response.getHeaders("Set-Cookie");
+        String cookie = (respHead.length == 0) ? null : respHead[0].getValue();
+        
+        this.currentCallback.onRequestEnd(response.getStatusLine().getStatusCode(), EntityUtils.toString(response.getEntity()).toString(), cookie);
 		} catch (ParseException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
